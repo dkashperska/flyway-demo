@@ -1,0 +1,2 @@
+ALTER TABLE users
+ADD login VARCHAR(30);
