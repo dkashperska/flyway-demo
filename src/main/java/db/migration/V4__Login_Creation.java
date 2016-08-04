@@ -1,11 +1,13 @@
-package luxoft;
+package db.migration;
 
 import luxoft.beans.User;
 import org.flywaydb.core.api.migration.spring.SpringJdbcMigration;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class V4__Login_Creation implements SpringJdbcMigration {
 
@@ -19,9 +21,14 @@ public class V4__Login_Creation implements SpringJdbcMigration {
 
         List<User> users  = jdbcTemplate.query(selector, new BeanPropertyRowMapper(User.class));
 
-        for (User user : users) {
-            String login = user.getFirstname().charAt(0) + user.getLastname();
-            jdbcTemplate.update(updater, login, user.getId());
-        }
+        List<Object[]> args = new ArrayList<>();
+
+        args.addAll(users.stream().map(
+                u -> { return new Object[] {
+                u.getFirstname().charAt(0) + u.getLastname(),
+                u.getId()}; }
+            ).collect(Collectors.toList()));
+
+        jdbcTemplate.batchUpdate(updater, args);
     }
 }
